@@ -1,4 +1,22 @@
 <!DOCTYPE html>
+<?php
+    require "includes/dbconnect.php";
+    
+    $username = "lindsey@lindseyfowler.com";
+    
+    if (isset($_GET['quiz'])){
+        $sql = "SELECT * FROM quiz join questions on quiz.quizid = questions.quizid WHERE user=:user and quizname=:quizname";
+
+        $query = $connection->prepare($sql);
+        $query->execute(array(':user' => $username, ':quizname' => trim($_GET['quiz'])));
+        if ($query->rowCount()){
+            $quiz = $query->fetchAll(PDO::FETCH_ASSOC);
+            $quizid = $quiz[0]['quizid'];
+            $quizname = $quiz[0]['quizname'];
+            
+        }
+    }
+?>
 <html>
  <head>
     <meta charset="utf-8">
@@ -55,10 +73,22 @@ $(document).ready( function() {
   <h2>Questions</h2>
   
   <form action="insert.php" method="post" class="questions">
-      
+    <p><label>Quiz Name</label><input type="text" name="quizname" value="<?php echo isset($quizname) ? $quizname : '' ?>"></p>
+
+    <?php 
+    if (isset($quizname)){
+        foreach ($quiz as $question) { ?>
     <div class="question-set">
-        <input type="text" name="question" placeholder="Ask a Question">
-        <input type="text" name="answer" placeholder="Correct Answer">
+        <input type="text" name="question[]" placeholder="Ask a Question" value="<?php echo $question['question'] ?>">
+        <input type="text" name="answer[]" placeholder="Correct Answer" value="<?php echo $question['answer'] ?>">
+        <input type="button" class="remove-question" name="question-remove" value="-">
+        <input type="button" class="add-question" name="question-add" value="+">
+    </div>
+    <?php }} ?>
+    
+    <div class="question-set">
+        <input type="text" name="question[]" placeholder="Ask a Question">
+        <input type="text" name="answer[]" placeholder="Correct Answer">
         <input type="button" class="remove-question" name="question-remove" value="-">
         <input type="button" class="add-question" name="question-add" value="+">
     </div>

@@ -1,61 +1,62 @@
 <?php
-/*
-Attempt MySQL server connection. Assuming you are running MySQL
-server with default setting (user 'root' with no password)
-*/
- $link = mysqli_connect("mysql.lindseyfowler.com", "lindseyfowler", "dbDemo123", "lindseyfowler_demo");
- 
-// Check connection
-if($link === false){
-    die("ERROR: Could not connect. " . mysqli_connect_error());
+
+$username = "lindsey@lindseyfowler.com";
+$quizname = "Quiz 2";
+
+$questions = $_POST['question'];
+$answers = $_POST['answer'];
+
+require "includes/dbconnect.php";
+
+$sql = "SELECT * FROM quiz WHERE user=:user and quizname=:quizname";
+
+$query = $connection->prepare($sql);
+$query->execute(array(':user' => $username, ':quizname' => $quizname));
+if ($query->rowCount()){
+    $quiz = $query->fetch(PDO::FETCH_ASSOC);
+    $quizid = $quiz['quizid'];
+
+    $deletequestionsql = "DELETE FROM questions WHERE quizid=:quizid";
+    $deletequestion = $connection->prepare($deletequestionsql);
+    $deletequestion->bindValue(':quizid', intval($quizid), PDO::PARAM_INT);
+    $deletequestion->execute();
+    
+}else{
+    $newquizsql = "INSERT INTO quiz (user, quizname) VALUES (:user, :quizname)";
+    $newquiz = $connection->prepare($newquizsql);
+    $newquiz->execute(array(':user' => $username, ':quizname' => $quizname));
 }
 
- 
-// Escape user inputs for security
-$question_s = mysqli_real_escape_string($link, $_POST['question']);
-$answer_s = mysqli_real_escape_string($link, $_POST['answer']);
- 
-// Inserts Questions with Answers to database
-$sql = "INSERT INTO questions_answers (question_s, answer_s) VALUES ('$question_s', '$answer_s')";
-if(mysqli_query($link, $sql)){
-    echo "Records added successfully.";
-} else{
-    echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
+$insertquestionsql = "INSERT INTO questions (question, answer, quizid) VALUES (:question, :answer, :quizid)";
+$insertquestion = $connection->prepare($insertquestionsql);
+
+$inserterror = false;
+$insertcount = 0;
+
+foreach ($questions as $key => $question){
+    $questiontext = isset($questions[$key]) ? trim($questions[$key]) : "";
+    $answertext = isset($answers[$key]) ? trim($answers[$key]) : "";
+    
+    if (!empty($questiontext) && !empty($answertext)){
+        $insertquestion->execute(array(
+                                    ':question' => $questiontext, 
+                                    ':answer' => $answertext, 
+                                    ':quizid' => $quizid,
+                                    )
+                                );
+        $insertcount++;
+    }else{
+        $inserterror = true;
+    }
 }
 
-//SELECT * FROM quiz z JOIN question_s q ON quizid = q.quizid WHERE user = "lfowler1290@gmail.com" and quizname = "myquiz1";
+if ($inserterror){
+    echo "<p>Not all of your entries could be saved<p>";
+}
 
+echo "<p>$insertcount entries saved<p>";
 
-
-$sql = "SELECT * FROM questions_answers";
-if($result = mysqli_query($link, $sql)){
-    if(mysqli_num_rows($result) > 0){
-        if (mysqli_query($link, $sql)) {
-            echo "<table>";
-                echo "<tr>";
-                    echo "<th>$qas_id</th>";
-                    echo "<th>QUESTION</th>";
-                    echo "<th>ANSWER</th>";
-                echo "</tr>";
-            while($row = mysqli_fetch_array($result)){
-                echo "<tr>";
-                    echo "<td>" . $row['qas_id'] . "</td>";
-                    echo "<td>" . $row['question_s'] . "</td>";
-                    echo "<td>" . $row['answer_s'] . "</td>";
-                echo "</tr>";
-            }
-            echo "</table>";
-            // Close result set
-            mysqli_free_result($result);
-        } else{
-            echo "No records matching your query were found.";
-        }
-    } else{
-        echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
-    }
-            
-    }
-
+die();
 $quiz = array();
 
 foreach ($results as $row) {
@@ -112,7 +113,3 @@ previousquestion = function() {
     return true;
 }
 */
-
-// Close connection
-mysqli_close($link);
-?>
