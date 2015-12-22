@@ -1,7 +1,5 @@
 <?php
 
-$username = "lindsey@lindseyfowler.com";
-$quizname = "Quiz 2";
 
 $questions = $_POST['question'];
 $answers = $_POST['answer'];
@@ -45,7 +43,7 @@ foreach ($questions as $key => $question){
                                     )
                                 );
         $insertcount++;
-    }else{
+    } else {
         $inserterror = true;
     }
 }

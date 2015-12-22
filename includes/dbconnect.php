@@ -4,9 +4,10 @@
 //$user = "root";
 //$pwd = "";
 //$database = "flashcard";
-$host = "mysql.lindseyfowler.com";
+
+$host = "s424.sureserver.com";
 $user = "flashcardUser";
 $pwd = "flashcardPwd";
-$database = "lindseyfowler_flashcards";
+$database = "lindseyfowler_flashcard";
 
 $connection = new PDO("mysql:host=$host;dbname=$database;", $user, $pwd);
